@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Tủ Sách Điện Tử</title>
+  <script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden; /* Cấm tuyệt đối cuộn trang */
+      background-color: #2b2b2b;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* KHUNG TOÀN CẢNH HIỂN THỊ SÁCH */
+    #viewport {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    #book {
+      display: none;
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6);
+    }
+
+    .page {
+      background-color: #ffffff !important;
+      overflow: hidden;
+    }
+
+    .page img {
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+      display: block;
+      user-select: none;
+    }
+
+    /* NÚT MỞ TỦ SÁCH (GÓC TRÊN BÊN TRÁI) */
+    .menu-btn {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 100;
+      background: rgba(30, 30, 30, 0.85);
+      color: #fff;
+      border: 1px solid #555;
+      padding: 8px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      backdrop-filter: blur(6px);
+      transition: background 0.2s;
+    }
+    .menu-btn:hover { background: #007bff; border-color: #007bff; }
+
+    /* THANH BÊN (SIDEBAR DỌC ẨN/HIỆN) */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 260px;
+      height: 100%;
+      background: #1c1c1e;
+      color: #fff;
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar.open {
+      transform: translateX(0);
+    }
+
+    .sidebar-header {
+      padding: 18px 16px;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sidebar-header h3 { font-size: 16px; font-weight: 600; color: #fff; }
+    .close-btn {
+      background: none;
+      border: none;
+      color: #aaa;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .close-btn:hover { color: #fff; }
+
+    .book-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 8px;
+    }
+    .book-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #ccc;
+      font-size: 14px;
+      margin-bottom: 4px;
+      transition: background 0.2s, color 0.2s;
+    }
+    .book-item:hover { background: #2c2c2e; color: #fff; }
+    .book-item.active { background: #007bff; color: #fff; font-weight: 600; }
+
+    /* MÀN MỜ PHỦ KHI MỞ MENU */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 150;
+      display: none;
+    }
+    .overlay.active { display: block; }
+
+    /* THANH ĐIỀU KHIỂN DƯỚI ĐÁY */
+    .toolbar {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      height: 42px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(20, 20, 20, 0.88);
+      backdrop-filter: blur(8px);
+      padding: 4px 14px;
+      border-radius: 25px;
+      color: #fff;
+      font-size: 13px;
+      z-index: 100;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    }
+    .toolbar button {
+      background: #444;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .toolbar button:hover { background: #007bff; }
+  </style>
+</head>
+<body>
+
+  <!-- Nút mở Tủ sách -->
+  <button class="menu-btn" id="open-menu">☰ <span>Tủ Sách</span></button>
+
+  <!-- Sidebar dọc bên trái -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h3>📚 Danh Mục Sách</h3>
+      <button class="close-btn" id="close-menu">✕</button>
+    </div>
+    <div class="book-list" id="book-list"></div>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+
+  <!-- Vùng hiển thị sách -->
+  <div id="viewport">
+    <div id="book"></div>
+  </div>
+
+  <!-- Thanh công cụ điều hướng -->
+  <div class="toolbar">
+    <button id="btn-prev">‹ Trước</button>
+    <span id="page-num">1 / 1</span>
+    <button id="btn-next">Sau ›</button>
+    <button id="btn-fullscreen">⛶ Toàn màn hình</button>
+  </div>
+
+  <script>
+    // =========================================================================
+    // ⚙️ CẤU HÌNH DANH SÁCH SÁCH & TỔNG SỐ TRANG CỦA BẠN TẠI ĐÂY
+    // =========================================================================
+    const BOOKS_DATA = {
+      "sach-1": {
+        title: "Quyển 1: TƯƠNG TÁC THUỐC BẤT LỢI VÀ NHỮNG LƯU Ý
+KHI KÊ ĐƠN, CHỈ ĐỊNH THUỐC TRÊN LÂM SÀNG",
+        folder: "books/sach-1",
+        totalPages: 25 // Sửa số trang của bạn ở đây
+      },
+      "sach-2": {
+        title: "Quyển 2: SỔ TAY SỬ DỤNG THUỐC HỢP LÝ",
+        folder: "books/sach-2",
+        totalPages: 30
+      },
+      "sach-3": {
+        title: "Quyển 3: CẨM NANG SỬ DỤNG KHÁNG SINH",
+        folder: "books/sach-3",
+        totalPages: 18
+      }
+    };
+
+    let pageFlip = null;
+    const viewport = document.getElementById("viewport");
+    const bookContainer = document.getElementById("book");
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("overlay");
+    const bookList = document.getElementById("book-list");
+    const pageNumText = document.getElementById("page-num");
+
+    const urlParams = new URLSearchParams(window.location.search);
+    let currentBookKey = urlParams.get("book") || Object.keys(BOOKS_DATA)[0];
+
+    // Tạo danh sách sách trong Sidebar
+    for (const key in BOOKS_DATA) {
+      const item = document.createElement("div");
+      item.className = `book-item ${key === currentBookKey ? 'active' : ''}`;
+      item.innerHTML = `📖 <span>${BOOKS_DATA[key].title}</span>`;
+      item.onclick = () => {
+        document.querySelectorAll(".book-item").forEach(el => el.classList.remove("active"));
+        item.classList.add("active");
+        closeSidebar();
+        currentBookKey = key;
+        loadBook(key);
+      };
+      bookList.appendChild(item);
+    }
+
+    function openSidebar() {
+      sidebar.classList.add("open");
+      overlay.classList.add("active");
+    }
+    function closeSidebar() {
+      sidebar.classList.remove("open");
+      overlay.classList.remove("active");
+    }
+    document.getElementById("open-menu").onclick = openSidebar;
+    document.getElementById("close-menu").onclick = closeSidebar;
+    overlay.onclick = closeSidebar;
+
+    // Tính toán kích thước vừa vặn màn hình, chống mất chữ
+    function calculateBookSize() {
+      const availWidth = viewport.clientWidth - 20;
+      const availHeight = viewport.clientHeight - 65; 
+      const isMobile = window.innerWidth < 768;
+      const ratio = 1.414; // Tỉ lệ trang A4
+
+      let singlePageWidth, singlePageHeight;
+
+      if (isMobile) {
+        singlePageHeight = availHeight;
+        singlePageWidth = singlePageHeight / ratio;
+        if (singlePageWidth > availWidth) {
+          singlePageWidth = availWidth;
+          singlePageHeight = singlePageWidth * ratio;
+        }
+      } else {
+        singlePageHeight = availHeight;
+        singlePageWidth = singlePageHeight / ratio;
+        if (singlePageWidth * 2 > availWidth) {
+          singlePageWidth = availWidth / 2;
+          singlePageHeight = singlePageWidth * ratio;
+        }
+      }
+
+      return {
+        width: Math.floor(singlePageWidth),
+        height: Math.floor(singlePageHeight)
+      };
+    }
+
+    // Nạp sách
+    function loadBook(bookKey) {
+      const bookData = BOOKS_DATA[bookKey];
+      if (!bookData) return;
+
+      if (pageFlip) {
+        pageFlip.destroy();
+        bookContainer.innerHTML = "";
+      }
+
+      for (let i = 1; i <= bookData.totalPages; i++) {
+        const pageDiv = document.createElement("div");
+        pageDiv.className = "page";
+
+        const img = document.createElement("img");
+        img.src = `${bookData.folder}/${i}.jpg`;
+        img.alt = `Trang ${i}`;
+        
+        img.onerror = function() {
+          this.parentElement.innerHTML = `<div style="padding:15px; text-align:center; color:#888; font-size:12px;">Thiếu: ${bookData.folder}/${i}.jpg</div>`;
+        };
+
+        pageDiv.appendChild(img);
+        bookContainer.appendChild(pageDiv);
+      }
+
+      const size = calculateBookSize();
+
+      pageFlip = new St.PageFlip(bookContainer, {
+        width: size.width,
+        height: size.height,
+        size: "fixed",
+        maxShadowOpacity: 0.35,
+        showCover: false,
+        mobileScrollSupport: false,
+        usePortrait: true
+      });
+
+      pageFlip.loadFromHTML(document.querySelectorAll(".page"));
+      bookContainer.style.display = "block";
+
+      function updateCounter() {
+        const current = pageFlip.getCurrentPageIndex() + 1;
+        const total = pageFlip.getPageCount();
+        pageNumText.innerText = `${current} / ${total}`;
+      }
+
+      pageFlip.on("flip", updateCounter);
+      pageFlip.on("init", updateCounter);
+    }
+
+    // Tự động chỉnh lại kích thước khi xoay màn hình
+    let resizeTimer;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        loadBook(currentBookKey);
+      }, 250);
+    });
+
+    document.getElementById("btn-prev").onclick = () => pageFlip && pageFlip.flipPrev();
+    document.getElementById("btn-next").onclick = () => pageFlip && pageFlip.flipNext();
+
+    // ==========================================
+    // ⛶ XỬ LÝ TOÀN MÀN HÌNH ĐÃ TÍCH HỢP TỰ SỬA LỖI
+    // ==========================================
+    const fsBtn = document.getElementById("btn-fullscreen");
+
+    function isFullScreen() {
+      return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+    }
+
+    fsBtn.onclick = function() {
+      const docEl = document.documentElement;
+
+      if (!isFullScreen()) {
+        const requestMethod = docEl.requestFullscreen || 
+                              docEl.webkitRequestFullscreen || 
+                              docEl.mozRequestFullScreen || 
+                              docEl.msRequestFullscreen;
+
+        if (requestMethod) {
+          requestMethod.call(docEl).catch(err => {
+            // Nếu bị Google Sites chặn quyền thì tự động mở sang tab mới toàn màn hình
+            window.open(window.location.href, "_blank");
+          });
+        } else {
+          // Safari trên iPhone không hỗ trợ API -> Mở tab mới
+          window.open(window.location.href, "_blank");
+        }
+      } else {
+        const exitMethod = document.exitFullscreen || 
+                          document.webkitExitFullscreen || 
+                          document.mozCancelFullScreen || 
+                          document.msExitFullscreen;
+        if (exitMethod) exitMethod.call(document);
+      }
+    };
+
+    // Khi vào hoặc thoát Toàn màn hình thì vẽ lại sách cho vừa khít
+    const handleFSChange = () => {
+      setTimeout(() => loadBook(currentBookKey), 200);
+    };
+    document.addEventListener("fullscreenchange", handleFSChange);
+    document.addEventListener("webkitfullscreenchange", handleFSChange);
+    document.addEventListener("mozfullscreenchange", handleFSChange);
+
+    // Bắt đầu tải sách
+    loadBook(currentBookKey);
+  </script>
+</body>
+</html>
