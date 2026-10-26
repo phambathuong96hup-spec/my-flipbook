@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Tá»§ SÃ¡ch Äiá»‡n Tá»­</title>
+  <title>Tủ Sách Điện Tử</title>
   <script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -13,10 +13,10 @@
       height: 100%;
       overflow: hidden;
       background-color: #2b2b2b;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
 
-    /* VÃ™NG CHá»¨A SÃCH */
+    /* VÙNG CHỨA SÁCH */
     #viewport {
       position: absolute;
       top: 0;
@@ -48,7 +48,7 @@
       user-select: none;
     }
 
-    /* NÃšT Má»ž Tá»¦ SÃCH */
+    /* NÚT MỞ TỦ SÁCH */
     .menu-btn {
       position: absolute;
       top: 12px;
@@ -70,12 +70,12 @@
     }
     .menu-btn:hover { background: #007bff; border-color: #007bff; }
 
-    /* SIDEBAR Dá»ŒC BÃŠN TRÃI */
+    /* SIDEBAR DỌC BÊN TRÁI */
     .sidebar {
       position: fixed;
       top: 0;
       left: 0;
-      width: 270px;
+      width: 280px;
       height: 100%;
       background: #1c1c1e;
       color: #fff;
@@ -138,7 +138,7 @@
     }
     .overlay.active { display: block; }
 
-    /* THANH CÃ”NG Cá»¤ DÆ¯á»šI ÄÃY */
+    /* THANH CÔNG CỤ DƯỚI ĐÁY */
     .toolbar {
       position: absolute;
       bottom: 12px;
@@ -170,7 +170,7 @@
     }
     .toolbar button:hover { background: #007bff; }
 
-    /* Ã” NHáº¬P TRANG THÃ”NG MINH */
+    /* Ô NHẬP TRANG */
     .page-input-box {
       display: flex;
       align-items: center;
@@ -190,7 +190,6 @@
       text-align: center;
       outline: none;
     }
-    /* áº¨n nÃºt mÅ©i tÃªn tÄƒng giáº£m sá»‘ máº·c Ä‘á»‹nh cá»§a trÃ¬nh duyá»‡t */
     .page-input-box input::-webkit-outer-spin-button,
     .page-input-box input::-webkit-inner-spin-button {
       -webkit-appearance: none;
@@ -200,49 +199,48 @@
 </head>
 <body>
 
-  <!-- NÃºt má»Ÿ Tá»§ sÃ¡ch -->
-  <button class="menu-btn" id="open-menu">â˜° <span>Tá»§ SÃ¡ch</span></button>
+  <!-- Nút mở Tủ sách -->
+  <button class="menu-btn" id="open-menu">☰ <span>Tủ Sách</span></button>
 
-  <!-- Sidebar dá»c bÃªn trÃ¡i -->
+  <!-- Sidebar dọc bên trái -->
   <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <h3>ðŸ“š Danh Má»¥c SÃ¡ch</h3>
-      <button class="close-btn" id="close-menu">âœ•</button>
+      <h3>📚 Danh Mục Sách</h3>
+      <button class="close-btn" id="close-menu">✕</button>
     </div>
     <div class="book-list" id="book-list"></div>
   </div>
 
   <div class="overlay" id="overlay"></div>
 
-  <!-- VÃ¹ng hiá»ƒn thá»‹ sÃ¡ch -->
+  <!-- Vùng hiển thị sách -->
   <div id="viewport">
     <div id="book"></div>
   </div>
 
-  <!-- Thanh cÃ´ng cá»¥ Ä‘iá»u hÆ°á»›ng -->
+  <!-- Thanh công cụ điều hướng -->
   <div class="toolbar">
-    <button id="btn-prev" title="Trang trÆ°á»›c (â†)">â€¹ TrÆ°á»›c</button>
+    <button id="btn-prev" title="Trang trước (←)">‹ Trước</button>
     
-    <!-- Ã” nháº­p sá»‘ trang trá»±c tiáº¿p -->
-    <div class="page-input-box" title="Nháº­p sá»‘ trang rá»“i báº¥m Enter Ä‘á»ƒ nháº£y tá»›i">
+    <div class="page-input-box" title="Nhập số trang rồi bấm Enter để nhảy tới">
       <input type="number" id="page-input" value="1" min="1" />
       <span style="color:#888;">/</span>
       <span id="total-pages">1</span>
     </div>
 
-    <button id="btn-next" title="Trang sau (â†’)">Sau â€º</button>
-    <button id="btn-fullscreen">â›¶ ToÃ n mÃ n hÃ¬nh</button>
+    <button id="btn-next" title="Trang sau (→)">Sau ›</button>
+    <button id="btn-fullscreen">⛶ Toàn màn hình</button>
   </div>
 
   <script>
     // =========================================================================
-    // âš™ï¸ DANH SÃCH SÃCH & Tá»”NG Sá» TRANG
+    // ⚙️ DANH SÁCH SÁCH & TỔNG SỐ TRANG
     // =========================================================================
     const BOOKS_DATA = {
       "sach-1": {
         title: "Quyển 1: TƯƠNG TÁC THUỐC BẤT LỢI VÀ NHỮNG LƯU Ý KHI KÊ ĐƠN, CHỈ ĐỊNH THUỐC TRÊN LÂM SÀNG",
         folder: "books/sach-1",
-        totalPages: 93 // Sách 1 của bạn có 93 trang
+        totalPages: 93
       },
       "sach-2": {
         title: "Quyển 2: SỔ TAY SỬ DỤNG THUỐC HỢP LÝ",
@@ -258,7 +256,6 @@
 
     let pageFlip = null;
     const viewport = document.getElementById("viewport");
-    const bookContainer = document.getElementById("book");
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("overlay");
     const bookList = document.getElementById("book-list");
@@ -268,11 +265,11 @@
     const urlParams = new URLSearchParams(window.location.search);
     let currentBookKey = urlParams.get("book") || Object.keys(BOOKS_DATA)[0];
 
-    // Táº¡o danh sÃ¡ch sÃ¡ch bÃªn trÃ¡i
+    // Tạo danh sách sách bên trái
     for (const key in BOOKS_DATA) {
       const item = document.createElement("div");
       item.className = `book-item ${key === currentBookKey ? 'active' : ''}`;
-      item.innerHTML = `ðŸ“– <span>${BOOKS_DATA[key].title}</span>`;
+      item.innerHTML = `📖 <span>${BOOKS_DATA[key].title}</span>`;
       item.onclick = () => {
         document.querySelectorAll(".book-item").forEach(el => el.classList.remove("active"));
         item.classList.add("active");
@@ -295,7 +292,7 @@
     document.getElementById("close-menu").onclick = closeSidebar;
     overlay.onclick = closeSidebar;
 
-    // TÃ­nh kÃ­ch thÆ°á»›c vá»«a váº·n mÃ n hÃ¬nh
+    // Tính kích thước vừa vặn màn hình
     function calculateBookSize() {
       const availWidth = viewport.clientWidth - 20;
       const availHeight = viewport.clientHeight - 65; 
@@ -326,7 +323,7 @@
       };
     }
 
-    // Táº£i sÃ¡ch
+    // Tải sách
     function loadBook(bookKey) {
       const bookData = BOOKS_DATA[bookKey];
       if (!bookData) return;
@@ -337,7 +334,7 @@
         pageFlip = null;
       }
 
-      // 2. TÁI TẠO LẠI HOÀN TOÀN THẺ #book TRONG #viewport (Khắc phục triệt để lỗi đen màn hình)
+      // 2. Tái tạo lại thẻ #book trong #viewport
       viewport.innerHTML = '<div id="book" class="flip-book"></div>';
       const currentBook = document.getElementById("book");
 
@@ -398,9 +395,7 @@
       updateCounter();
     }
 
-    // ==========================================
-    // ðŸŽ¯ Sá»° KIá»†N NHáº¬P Sá» TRANG Äá»‚ NHáº¢Y TRANG
-    // ==========================================
+    // Nhảy trang khi gõ số trang
     function jumpToPage() {
       if (!pageFlip) return;
       let target = parseInt(pageInput.value, 10);
@@ -410,27 +405,26 @@
       if (target > total) target = total;
 
       pageInput.value = target;
-      // Láº­t tháº³ng Ä‘áº¿n trang ngÆ°á»i dÃ¹ng chá»n
       pageFlip.flip(target - 1);
     }
 
     pageInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         jumpToPage();
-        pageInput.blur(); // Táº¯t bÃ n phÃ­m sau khi Enter
+        pageInput.blur();
       }
     });
     pageInput.addEventListener("change", jumpToPage);
-    pageInput.addEventListener("focus", function() { this.select(); }); // Tá»± bÃ´i Ä‘en Ä‘á»ƒ gÃµ sá»‘ má»›i nhanh
+    pageInput.addEventListener("focus", function() { this.select(); });
 
-    // Há»— trá»£ phÃ­m mÅ©i tÃªn â† vÃ  â†’ trÃªn bÃ n phÃ­m
+    // Hỗ trợ phím mũi tên ← và → trên bàn phím
     document.addEventListener("keydown", (e) => {
-      if (document.activeElement === pageInput) return; // Náº¿u Ä‘ang gÃµ Ã´ sá»‘ thÃ¬ khÃ´ng can thiá»‡p
+      if (document.activeElement === pageInput) return;
       if (e.key === "ArrowLeft") pageFlip && pageFlip.flipPrev();
       if (e.key === "ArrowRight") pageFlip && pageFlip.flipNext();
     });
 
-    // Tá»± chá»‰nh kÃ­ch thÆ°á»›c khi xoay mÃ n hÃ¬nh
+    // Tự chỉnh kích thước khi xoay màn hình
     let resizeTimer;
     window.addEventListener("resize", () => {
       clearTimeout(resizeTimer);
@@ -440,7 +434,7 @@
     document.getElementById("btn-prev").onclick = () => pageFlip && pageFlip.flipPrev();
     document.getElementById("btn-next").onclick = () => pageFlip && pageFlip.flipNext();
 
-    // ToÃ n mÃ n hÃ¬nh
+    // Toàn màn hình
     const fsBtn = document.getElementById("btn-fullscreen");
     function isFullScreen() {
       return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
@@ -465,7 +459,7 @@
     document.addEventListener("webkitfullscreenchange", handleFSChange);
     document.addEventListener("mozfullscreenchange", handleFSChange);
 
-    // Khá»Ÿi cháº¡y sÃ¡ch
+    // Khởi chạy sách
     loadBook(currentBookKey);
   </script>
 </body>
