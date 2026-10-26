@@ -252,7 +252,7 @@
       "sach-3": {
         title: "Quyển 3: CẨM NANG SỬ DỤNG KHÁNG SINH",
         folder: "books/sach-3",
-        totalPages: 18
+        totalPages: 0 // Đang cập nhật
       }
     };
 
@@ -331,11 +331,29 @@
       const bookData = BOOKS_DATA[bookKey];
       if (!bookData) return;
 
+      // 1. Hủy flipbook cũ an toàn
       if (pageFlip) {
-        pageFlip.destroy();
-        bookContainer.innerHTML = "";
+        try { pageFlip.destroy(); } catch (e) {}
+        pageFlip = null;
       }
 
+      // 2. TÁI TẠO LẠI HOÀN TOÀN THẺ #book TRONG #viewport (Khắc phục triệt để lỗi đen màn hình)
+      viewport.innerHTML = '<div id="book" class="flip-book"></div>';
+      const currentBook = document.getElementById("book");
+
+      // 3. Nếu sách chưa có ảnh hoặc totalPages = 0 (như Sách 3)
+      if (!bookData.totalPages || bookData.totalPages === 0) {
+        viewport.innerHTML = `<div style="color: #bbb; text-align: center; padding: 40px; background: rgba(0,0,0,0.5); border-radius: 12px; border: 1px dashed #555;">
+          <h3 style="margin-bottom: 10px; color: #fff;">📖 ${bookData.title}</h3>
+          <p>Sách này đang được chuẩn bị và sẽ sớm cập nhật!</p>
+        </div>`;
+        pageInput.value = 0;
+        pageInput.max = 0;
+        totalPagesSpan.innerText = 0;
+        return;
+      }
+
+      // 4. Tạo các trang ảnh
       for (let i = 1; i <= bookData.totalPages; i++) {
         const pageDiv = document.createElement("div");
         pageDiv.className = "page";
@@ -345,16 +363,16 @@
         img.alt = `Trang ${i}`;
         
         img.onerror = function() {
-          this.parentElement.innerHTML = `<div style="padding:15px; text-align:center; color:#888; font-size:12px;">Thiáº¿u: ${bookData.folder}/${i}.jpg</div>`;
+          this.parentElement.innerHTML = `<div style="padding:15px; text-align:center; color:#888; font-size:12px;">Thiếu: ${bookData.folder}/${i}.jpg</div>`;
         };
 
         pageDiv.appendChild(img);
-        bookContainer.appendChild(pageDiv);
+        currentBook.appendChild(pageDiv);
       }
 
       const size = calculateBookSize();
 
-      pageFlip = new St.PageFlip(bookContainer, {
+      pageFlip = new St.PageFlip(currentBook, {
         width: size.width,
         height: size.height,
         size: "fixed",
@@ -364,10 +382,9 @@
         usePortrait: true
       });
 
-      pageFlip.loadFromHTML(document.querySelectorAll(".page"));
-      bookContainer.style.display = "block";
+      pageFlip.loadFromHTML(currentBook.querySelectorAll(".page"));
+      currentBook.style.display = "block";
 
-      // Cáº­p nháº­t sá»‘ trang lÃªn Ã´ input
       function updateCounter() {
         const current = pageFlip.getCurrentPageIndex() + 1;
         const total = pageFlip.getPageCount();

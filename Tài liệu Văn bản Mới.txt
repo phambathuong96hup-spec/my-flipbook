@@ -1,8 +1,0 @@
-<iframe 
-  src="https://phambathuong96hup-spec.github.io/my-flipbook/" 
-  style="width: 100%; height: 90vh; min-height: 650px; border: none;" 
-  allow="fullscreen; autoplay" 
-  allowfullscreen="true"
-  webkitallowfullscreen="true" 
-  mozallowfullscreen="true">
-</iframe>
