@@ -28,6 +28,18 @@
       justify-content: center;
       padding: 10px;
       box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    /* KHUNG THU PHÓNG (ZOOM WRAPPER) */
+    #zoom-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform-origin: center center;
+      transition: transform 0.15s ease-out;
+      will-change: transform;
+      user-select: none;
     }
 
     #book {
@@ -46,6 +58,7 @@
       object-fit: contain;
       display: block;
       user-select: none;
+      pointer-events: none;
     }
 
     /* NÚT MỞ TỦ SÁCH */
@@ -66,7 +79,7 @@
       align-items: center;
       gap: 6px;
       backdrop-filter: blur(6px);
-      transition: background 0.2s;
+      transition: background 0.2s, border-color 0.2s;
     }
     .menu-btn:hover { background: #007bff; border-color: #007bff; }
 
@@ -147,41 +160,63 @@
       height: 44px;
       display: flex;
       align-items: center;
-      gap: 8px;
-      background: rgba(20, 20, 20, 0.9);
-      backdrop-filter: blur(8px);
-      padding: 4px 14px;
+      gap: 6px;
+      background: rgba(20, 20, 20, 0.92);
+      backdrop-filter: blur(10px);
+      padding: 4px 12px;
       border-radius: 25px;
       color: #fff;
       font-size: 13px;
       z-index: 100;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.1);
+      max-width: 95vw;
     }
+
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .toolbar-sep {
+      width: 1px;
+      height: 20px;
+      background: rgba(255,255,255,0.15);
+      margin: 0 4px;
+    }
+
     .toolbar button {
-      background: #444;
+      background: #38383a;
       color: #fff;
-      border: none;
-      padding: 6px 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 6px 11px;
       border-radius: 14px;
       cursor: pointer;
       font-size: 12px;
       font-weight: 500;
-      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: background 0.2s, transform 0.1s;
+      white-space: nowrap;
     }
-    .toolbar button:hover { background: #007bff; }
+    .toolbar button:hover { background: #007bff; border-color: #007bff; }
+    .toolbar button:active { transform: scale(0.96); }
 
     /* Ô NHẬP TRANG */
     .page-input-box {
       display: flex;
       align-items: center;
       gap: 4px;
-      background: #2a2a2a;
+      background: #242426;
       padding: 3px 8px;
       border-radius: 12px;
-      border: 1px solid #555;
+      border: 1px solid #444;
     }
     .page-input-box input {
-      width: 44px;
+      width: 42px;
       background: transparent;
       border: none;
       color: #00e1ff;
@@ -194,6 +229,40 @@
     .page-input-box input::-webkit-inner-spin-button {
       -webkit-appearance: none;
       margin: 0;
+    }
+
+    /* NHÃN PHẦN TRĂM ZOOM */
+    #zoom-label {
+      font-size: 11px;
+      color: #aaa;
+      font-weight: 600;
+      min-width: 38px;
+      text-align: center;
+      user-select: none;
+    }
+
+    /* RESPONSIVE MOBILE */
+    @media (max-width: 768px) {
+      .toolbar {
+        bottom: 8px;
+        padding: 3px 8px;
+        gap: 4px;
+        height: 38px;
+      }
+      .toolbar button {
+        padding: 5px 8px;
+        font-size: 11px;
+      }
+      .btn-text {
+        display: none;
+      }
+      #btn-view-mode {
+        display: none;
+      }
+      .page-input-box input {
+        width: 34px;
+        font-size: 11px;
+      }
     }
   </style>
 </head>
@@ -213,23 +282,45 @@
 
   <div class="overlay" id="overlay"></div>
 
-  <!-- Vùng hiển thị sách -->
+  <!-- Vùng hiển thị sách với khả năng Thu Phóng (Zoom) -->
   <div id="viewport">
-    <div id="book"></div>
+    <div id="zoom-container">
+      <div id="book"></div>
+    </div>
   </div>
 
-  <!-- Thanh công cụ điều hướng -->
+  <!-- Thanh công cụ điều hướng hiện đại -->
   <div class="toolbar">
-    <button id="btn-prev" title="Trang trước (←)">‹ Trước</button>
-    
-    <div class="page-input-box" title="Nhập số trang rồi bấm Enter để nhảy tới">
-      <input type="number" id="page-input" value="1" min="1" />
-      <span style="color:#888;">/</span>
-      <span id="total-pages">1</span>
+    <!-- Cụm điều hướng trang -->
+    <div class="toolbar-group">
+      <button id="btn-prev" title="Trang trước (←)">‹ Trước</button>
+      
+      <div class="page-input-box" title="Nhập số trang rồi bấm Enter để nhảy tới">
+        <input type="number" id="page-input" value="1" min="1" />
+        <span style="color:#888;">/</span>
+        <span id="total-pages">1</span>
+      </div>
+
+      <button id="btn-next" title="Trang sau (→)">Sau ›</button>
     </div>
 
-    <button id="btn-next" title="Trang sau (→)">Sau ›</button>
-    <button id="btn-fullscreen">⛶ Toàn màn hình</button>
+    <div class="toolbar-sep"></div>
+
+    <!-- Cụm Thu Phóng (Zoom) -->
+    <div class="toolbar-group">
+      <button id="btn-zoom-out" title="Thu nhỏ (-)">➖</button>
+      <span id="zoom-label" title="Nhấp đúp chuột vào trang để phóng to/thu nhỏ nhanh">100%</span>
+      <button id="btn-zoom-in" title="Phóng to (+)">➕</button>
+      <button id="btn-zoom-reset" title="Khôi phục kích thước 100% (Phím số 0)">↺</button>
+    </div>
+
+    <div class="toolbar-sep"></div>
+
+    <!-- Cụm Chế độ 1 trang / 2 trang & Toàn màn hình -->
+    <div class="toolbar-group">
+      <button id="btn-view-mode" title="Chuyển chế độ 1 trang / 2 trang">📄 <span class="btn-text">1 Trang</span></button>
+      <button id="btn-fullscreen" title="Toàn màn hình (F)">⛶ <span class="btn-text">Toàn màn hình</span></button>
+    </div>
   </div>
 
   <script>
@@ -262,20 +353,48 @@
 
     let pageFlip = null;
     const viewport = document.getElementById("viewport");
+    const zoomContainer = document.getElementById("zoom-container");
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("overlay");
     const bookList = document.getElementById("book-list");
     const pageInput = document.getElementById("page-input");
     const totalPagesSpan = document.getElementById("total-pages");
+    const btnViewMode = document.getElementById("btn-view-mode");
+    const zoomLabel = document.getElementById("zoom-label");
 
     const urlParams = new URLSearchParams(window.location.search);
     let currentBookKey = urlParams.get("book") || Object.keys(BOOKS_DATA)[0];
 
+    // Chế độ xem: "double" (2 trang song song) hoặc "single" (1 trang toàn màn hình)
+    let currentViewMode = "double";
+
+    // Cập nhật nút chế độ xem
+    function updateViewModeButton() {
+      if (!btnViewMode) return;
+      if (currentViewMode === "single") {
+        btnViewMode.innerHTML = '📖 <span class="btn-text">2 Trang</span>';
+        btnViewMode.title = "Chuyển sang chế độ xem 2 trang đối diện";
+      } else {
+        btnViewMode.innerHTML = '📄 <span class="btn-text">1 Trang</span>';
+        btnViewMode.title = "Chuyển sang chế độ xem 1 trang toàn màn hình";
+      }
+    }
+    updateViewModeButton();
+
+    btnViewMode.onclick = () => {
+      const isMobile = window.innerWidth < 768;
+      if (isMobile) return;
+      const savedPage = pageFlip ? pageFlip.getCurrentPageIndex() : 0;
+      currentViewMode = currentViewMode === "single" ? "double" : "single";
+      updateViewModeButton();
+      loadBook(currentBookKey, savedPage);
+    };
+
     // Tạo danh sách sách bên trái
     for (const key in BOOKS_DATA) {
       const item = document.createElement("div");
-      item.className = `book-item ${key === currentBookKey ? 'active' : ''}`;
-      item.innerHTML = `📖 <span>${BOOKS_DATA[key].title}</span>`;
+      item.className = "book-item " + (key === currentBookKey ? 'active' : '');
+      item.innerHTML = '📖 <span>' + BOOKS_DATA[key].title + '</span>';
       item.onclick = () => {
         document.querySelectorAll(".book-item").forEach(el => el.classList.remove("active"));
         item.classList.add("active");
@@ -298,16 +417,169 @@
     document.getElementById("close-menu").onclick = closeSidebar;
     overlay.onclick = closeSidebar;
 
-    // Tính kích thước vừa vặn màn hình
+    // =========================================================================
+    // 🔍 HỆ THỐNG THU PHÓNG (ZOOM & PAN)
+    // =========================================================================
+    let currentZoom = 1;
+    const MIN_ZOOM = 1;
+    const MAX_ZOOM = 3.5;
+    const ZOOM_STEP = 0.25;
+    let panX = 0;
+    let panY = 0;
+    let isPanning = false;
+    let startX = 0;
+    let startY = 0;
+
+    function applyZoom(smooth = true) {
+      if (!zoomContainer) return;
+      if (currentZoom <= 1) {
+        currentZoom = 1;
+        panX = 0;
+        panY = 0;
+        zoomContainer.style.transition = smooth ? "transform 0.2s ease-out" : "none";
+        zoomContainer.style.transform = "none";
+        zoomContainer.style.cursor = "default";
+      } else {
+        const maxPanX = (viewport.clientWidth * (currentZoom - 1)) / 1.5;
+        const maxPanY = (viewport.clientHeight * (currentZoom - 1)) / 1.5;
+        panX = Math.max(-maxPanX, Math.min(maxPanX, panX));
+        panY = Math.max(-maxPanY, Math.min(maxPanY, panY));
+
+        zoomContainer.style.transition = smooth ? "transform 0.15s ease-out" : "none";
+        zoomContainer.style.transform = "translate(" + panX + "px, " + panY + "px) scale(" + currentZoom + ")";
+        zoomContainer.style.cursor = isPanning ? "grabbing" : "grab";
+      }
+      if (zoomLabel) {
+        zoomLabel.innerText = Math.round(currentZoom * 100) + "%";
+      }
+    }
+
+    function zoomIn() {
+      if (currentZoom < MAX_ZOOM) {
+        currentZoom = Math.min(MAX_ZOOM, +(currentZoom + ZOOM_STEP).toFixed(2));
+        applyZoom(true);
+      }
+    }
+
+    function zoomOut() {
+      if (currentZoom > MIN_ZOOM) {
+        currentZoom = Math.max(MIN_ZOOM, +(currentZoom - ZOOM_STEP).toFixed(2));
+        applyZoom(true);
+      }
+    }
+
+    function zoomReset() {
+      currentZoom = 1;
+      panX = 0;
+      panY = 0;
+      applyZoom(true);
+    }
+
+    document.getElementById("btn-zoom-in").onclick = zoomIn;
+    document.getElementById("btn-zoom-out").onclick = zoomOut;
+    document.getElementById("btn-zoom-reset").onclick = zoomReset;
+
+    // Kéo rê khi phóng to (Drag to Pan)
+    viewport.addEventListener("mousedown", (e) => {
+      if (currentZoom > 1 && e.button === 0) {
+        isPanning = true;
+        startX = e.clientX - panX;
+        startY = e.clientY - panY;
+        zoomContainer.style.cursor = "grabbing";
+        e.preventDefault();
+      }
+    });
+
+    window.addEventListener("mousemove", (e) => {
+      if (!isPanning || currentZoom <= 1) return;
+      panX = e.clientX - startX;
+      panY = e.clientY - startY;
+      applyZoom(false);
+    });
+
+    window.addEventListener("mouseup", () => {
+      if (isPanning) {
+        isPanning = false;
+        if (zoomContainer) zoomContainer.style.cursor = currentZoom > 1 ? "grab" : "default";
+      }
+    });
+
+    // Cuộn chuột để phóng to/thu nhỏ (khi giữ Ctrl hoặc khi đã zoom)
+    viewport.addEventListener("wheel", (e) => {
+      if (e.ctrlKey || currentZoom > 1) {
+        e.preventDefault();
+        if (e.deltaY < 0) zoomIn();
+        else zoomOut();
+      }
+    }, { passive: false });
+
+    // Nhấp đúp chuột để phóng to nhanh 200% hoặc khôi phục 100%
+    viewport.addEventListener("dblclick", (e) => {
+      if (e.target.closest(".toolbar") || e.target.closest(".menu-btn") || e.target.closest(".sidebar")) return;
+      if (currentZoom > 1) {
+        zoomReset();
+      } else {
+        currentZoom = 2.0;
+        const rect = viewport.getBoundingClientRect();
+        const clickX = e.clientX - (rect.left + rect.width / 2);
+        const clickY = e.clientY - (rect.top + rect.height / 2);
+        panX = -clickX * 0.9;
+        panY = -clickY * 0.9;
+        applyZoom(true);
+      }
+    });
+
+    // Hỗ trợ Touch Pinch & Pan trên điện thoại
+    let initialTouchDistance = 0;
+    let initialTouchZoom = 1;
+    viewport.addEventListener("touchstart", (e) => {
+      if (e.touches.length === 2) {
+        initialTouchDistance = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        initialTouchZoom = currentZoom;
+      } else if (e.touches.length === 1 && currentZoom > 1) {
+        isPanning = true;
+        startX = e.touches[0].clientX - panX;
+        startY = e.touches[0].clientY - panY;
+      }
+    }, { passive: true });
+
+    viewport.addEventListener("touchmove", (e) => {
+      if (e.touches.length === 2 && initialTouchDistance > 0) {
+        const currentDistance = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        const scaleFactor = currentDistance / initialTouchDistance;
+        currentZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, +(initialTouchZoom * scaleFactor).toFixed(2)));
+        applyZoom(false);
+      } else if (e.touches.length === 1 && isPanning && currentZoom > 1) {
+        panX = e.touches[0].clientX - startX;
+        panY = e.touches[0].clientY - startY;
+        applyZoom(false);
+      }
+    }, { passive: true });
+
+    viewport.addEventListener("touchend", () => {
+      initialTouchDistance = 0;
+      isPanning = false;
+    });
+
+    // =========================================================================
+    // 📖 TÍNH KÍCH THƯỚC VÀ HIỂN THỊ SÁCH
+    // =========================================================================
     function calculateBookSize(bookData) {
       const availWidth = viewport.clientWidth - 20;
       const availHeight = viewport.clientHeight - 65; 
       const isMobile = window.innerWidth < 768;
+      const forceSingle = (currentViewMode === "single") || isMobile;
       const ratio = (bookData && bookData.ratio) ? bookData.ratio : 1.414;
 
       let singlePageWidth, singlePageHeight;
 
-      if (isMobile) {
+      if (forceSingle) {
         singlePageHeight = availHeight;
         singlePageWidth = singlePageHeight / ratio;
         if (singlePageWidth > availWidth) {
@@ -325,31 +597,33 @@
 
       return {
         width: Math.floor(singlePageWidth),
-        height: Math.floor(singlePageHeight)
+        height: Math.floor(singlePageHeight),
+        isSingle: forceSingle
       };
     }
 
     // Tải sách
-    function loadBook(bookKey) {
+    function loadBook(bookKey, targetPageIndex = 0) {
       const bookData = BOOKS_DATA[bookKey];
       if (!bookData) return;
 
-      // 1. Hủy flipbook cũ an toàn
+      // 1. Hủy flipbook cũ an toàn & đặt lại zoom
       if (pageFlip) {
         try { pageFlip.destroy(); } catch (e) {}
         pageFlip = null;
       }
+      zoomReset();
 
-      // 2. Tái tạo lại thẻ #book trong #viewport
-      viewport.innerHTML = '<div id="book" class="flip-book"></div>';
+      // 2. Tái tạo lại thẻ #book trong #zoom-container
+      zoomContainer.innerHTML = '<div id="book" class="flip-book"></div>';
       const currentBook = document.getElementById("book");
 
-      // 3. Nếu sách chưa có ảnh hoặc totalPages = 0 (như Sách 3)
+      // 3. Nếu sách chưa có ảnh hoặc totalPages = 0
       if (!bookData.totalPages || bookData.totalPages === 0) {
-        viewport.innerHTML = `<div style="color: #bbb; text-align: center; padding: 40px; background: rgba(0,0,0,0.5); border-radius: 12px; border: 1px dashed #555;">
-          <h3 style="margin-bottom: 10px; color: #fff;">📖 ${bookData.title}</h3>
-          <p>Sách này đang được chuẩn bị và sẽ sớm cập nhật!</p>
-        </div>`;
+        zoomContainer.innerHTML = '<div style="color: #bbb; text-align: center; padding: 40px; background: rgba(0,0,0,0.5); border-radius: 12px; border: 1px dashed #555;">' +
+          '<h3 style="margin-bottom: 10px; color: #fff;">📖 ' + bookData.title + '</h3>' +
+          '<p>Sách này đang được chuẩn bị và sẽ sớm cập nhật!</p>' +
+        '</div>';
         pageInput.value = 0;
         pageInput.max = 0;
         totalPagesSpan.innerText = 0;
@@ -362,11 +636,11 @@
         pageDiv.className = "page";
 
         const img = document.createElement("img");
-        img.src = `${bookData.folder}/${i}.jpg`;
-        img.alt = `Trang ${i}`;
+        img.src = bookData.folder + "/" + i + ".jpg";
+        img.alt = "Trang " + i;
         
         img.onerror = function() {
-          this.parentElement.innerHTML = `<div style="padding:15px; text-align:center; color:#888; font-size:12px;">Thiếu: ${bookData.folder}/${i}.jpg</div>`;
+          this.parentElement.innerHTML = '<div style="padding:15px; text-align:center; color:#888; font-size:12px;">Thiếu: ' + bookData.folder + '/' + i + '.jpg</div>';
         };
 
         pageDiv.appendChild(img);
@@ -375,12 +649,21 @@
 
       const size = calculateBookSize(bookData);
 
+      // Định hình kích thước khung chứa để St.PageFlip nhận diện đúng single/double
+      if (size.isSingle) {
+        currentBook.style.width = size.width + "px";
+        currentBook.style.maxWidth = size.width + "px";
+      } else {
+        currentBook.style.width = (size.width * 2) + "px";
+        currentBook.style.maxWidth = (size.width * 2) + "px";
+      }
+
       pageFlip = new St.PageFlip(currentBook, {
         width: size.width,
         height: size.height,
         size: "fixed",
         maxShadowOpacity: 0.35,
-        showCover: bookData.showCover !== undefined ? bookData.showCover : true,
+        showCover: size.isSingle ? false : (bookData.showCover !== undefined ? bookData.showCover : true),
         mobileScrollSupport: false,
         usePortrait: true
       });
@@ -388,7 +671,12 @@
       pageFlip.loadFromHTML(currentBook.querySelectorAll(".page"));
       currentBook.style.display = "block";
 
+      if (targetPageIndex > 0 && targetPageIndex < bookData.totalPages) {
+        try { pageFlip.turnToPage(targetPageIndex); } catch(e) {}
+      }
+
       function updateCounter() {
+        if (!pageFlip) return;
         const current = pageFlip.getCurrentPageIndex() + 1;
         const total = pageFlip.getPageCount();
         pageInput.value = current;
@@ -396,7 +684,10 @@
         totalPagesSpan.innerText = total;
       }
 
-      pageFlip.on("flip", updateCounter);
+      pageFlip.on("flip", () => {
+        if (currentZoom > 1) zoomReset();
+        updateCounter();
+      });
       pageFlip.on("init", updateCounter);
       updateCounter();
     }
@@ -411,6 +702,7 @@
       if (target > total) target = total;
 
       pageInput.value = target;
+      if (currentZoom > 1) zoomReset();
       pageFlip.flip(target - 1);
     }
 
@@ -423,18 +715,25 @@
     pageInput.addEventListener("change", jumpToPage);
     pageInput.addEventListener("focus", function() { this.select(); });
 
-    // Hỗ trợ phím mũi tên ← và → trên bàn phím
+    // Hỗ trợ phím bàn phím: ←, →, +, -, 0, F
     document.addEventListener("keydown", (e) => {
       if (document.activeElement === pageInput) return;
       if (e.key === "ArrowLeft") pageFlip && pageFlip.flipPrev();
       if (e.key === "ArrowRight") pageFlip && pageFlip.flipNext();
+      if (e.key === "+" || e.key === "=") zoomIn();
+      if (e.key === "-" || e.key === "_") zoomOut();
+      if (e.key === "0") zoomReset();
+      if (e.key === "f" || e.key === "F") toggleFullScreen();
     });
 
-    // Tự chỉnh kích thước khi xoay màn hình
+    // Tự chỉnh kích thước khi xoay hoặc thay đổi kích cỡ màn hình
     let resizeTimer;
     window.addEventListener("resize", () => {
       clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => loadBook(currentBookKey), 250);
+      resizeTimer = setTimeout(() => {
+        const savedPage = pageFlip ? pageFlip.getCurrentPageIndex() : 0;
+        loadBook(currentBookKey, savedPage);
+      }, 250);
     });
 
     document.getElementById("btn-prev").onclick = () => pageFlip && pageFlip.flipPrev();
@@ -445,7 +744,7 @@
     function isFullScreen() {
       return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
     }
-    fsBtn.onclick = function() {
+    function toggleFullScreen() {
       const docEl = document.documentElement;
       if (!isFullScreen()) {
         const req = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
@@ -458,14 +757,20 @@
         const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
         if (exit) exit.call(document);
       }
-    };
+    }
+    fsBtn.onclick = toggleFullScreen;
 
-    const handleFSChange = () => setTimeout(() => loadBook(currentBookKey), 200);
+    const handleFSChange = () => {
+      setTimeout(() => {
+        const savedPage = pageFlip ? pageFlip.getCurrentPageIndex() : 0;
+        loadBook(currentBookKey, savedPage);
+      }, 250);
+    };
     document.addEventListener("fullscreenchange", handleFSChange);
     document.addEventListener("webkitfullscreenchange", handleFSChange);
     document.addEventListener("mozfullscreenchange", handleFSChange);
 
-    // Khởi chạy sách
+    // Khởi động quyển sách đầu tiên
     loadBook(currentBookKey);
   </script>
 </body>
