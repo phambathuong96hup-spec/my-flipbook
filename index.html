@@ -32,18 +32,18 @@
 
     #book {
       display: none;
-      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6);
     }
 
     .page {
       background-color: #ffffff !important;
       overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
 
     .page img {
       width: 100%;
       height: 100%;
-      object-fit: fill;
+      object-fit: contain;
       display: block;
       user-select: none;
     }
@@ -240,17 +240,23 @@
       "sach-1": {
         title: "Quyển 1: TƯƠNG TÁC THUỐC BẤT LỢI VÀ NHỮNG LƯU Ý KHI KÊ ĐƠN, CHỈ ĐỊNH THUỐC TRÊN LÂM SÀNG",
         folder: "books/sach-1",
-        totalPages: 93
+        totalPages: 93,
+        ratio: 1.294,
+        showCover: true
       },
       "sach-2": {
         title: "Quyển 2: SỔ TAY SỬ DỤNG THUỐC HỢP LÝ",
         folder: "books/sach-2",
-        totalPages: 131
+        totalPages: 131,
+        ratio: 1.444,
+        showCover: true
       },
       "sach-3": {
-        title: "Quyển 3: CẨM NANG SỬ DỤNG KHÁNG SINH",
+        title: "Quyển 3: CẨM NANG ĐỒ HỌA SỬ DỤNG KHÁNG SINH TẠI BỆNH VIỆN",
         folder: "books/sach-3",
-        totalPages: 90
+        totalPages: 90,
+        ratio: 1.294,
+        showCover: true
       }
     };
 
@@ -293,11 +299,11 @@
     overlay.onclick = closeSidebar;
 
     // Tính kích thước vừa vặn màn hình
-    function calculateBookSize() {
+    function calculateBookSize(bookData) {
       const availWidth = viewport.clientWidth - 20;
       const availHeight = viewport.clientHeight - 65; 
       const isMobile = window.innerWidth < 768;
-      const ratio = 1.414;
+      const ratio = (bookData && bookData.ratio) ? bookData.ratio : 1.414;
 
       let singlePageWidth, singlePageHeight;
 
@@ -367,14 +373,14 @@
         currentBook.appendChild(pageDiv);
       }
 
-      const size = calculateBookSize();
+      const size = calculateBookSize(bookData);
 
       pageFlip = new St.PageFlip(currentBook, {
         width: size.width,
         height: size.height,
         size: "fixed",
         maxShadowOpacity: 0.35,
-        showCover: false,
+        showCover: bookData.showCover !== undefined ? bookData.showCover : true,
         mobileScrollSupport: false,
         usePortrait: true
       });
