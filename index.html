@@ -245,22 +245,19 @@
     @media (max-width: 768px) {
       .toolbar {
         bottom: 8px;
-        padding: 3px 8px;
-        gap: 4px;
+        padding: 3px 6px;
+        gap: 3px;
         height: 38px;
       }
       .toolbar button {
-        padding: 5px 8px;
+        padding: 5px 7px;
         font-size: 11px;
       }
       .btn-text {
         display: none;
       }
-      #btn-view-mode {
-        display: none;
-      }
       .page-input-box input {
-        width: 34px;
+        width: 32px;
         font-size: 11px;
       }
     }
@@ -333,21 +330,21 @@
         folder: "books/sach-1",
         totalPages: 93,
         ratio: 1.294,
-        showCover: true
+        showCover: false
       },
       "sach-2": {
         title: "Quyển 2: SỔ TAY SỬ DỤNG THUỐC HỢP LÝ",
         folder: "books/sach-2",
         totalPages: 131,
         ratio: 1.444,
-        showCover: true
+        showCover: false
       },
       "sach-3": {
         title: "Quyển 3: CẨM NANG ĐỒ HỌA SỬ DỤNG KHÁNG SINH TẠI BỆNH VIỆN",
         folder: "books/sach-3",
         totalPages: 90,
         ratio: 1.294,
-        showCover: true
+        showCover: false
       }
     };
 
@@ -382,8 +379,6 @@
     updateViewModeButton();
 
     btnViewMode.onclick = () => {
-      const isMobile = window.innerWidth < 768;
-      if (isMobile) return;
       const savedPage = pageFlip ? pageFlip.getCurrentPageIndex() : 0;
       currentViewMode = currentViewMode === "single" ? "double" : "single";
       updateViewModeButton();
@@ -573,8 +568,8 @@
     function calculateBookSize(bookData) {
       const availWidth = viewport.clientWidth - 20;
       const availHeight = viewport.clientHeight - 65; 
-      const isMobile = window.innerWidth < 768;
-      const forceSingle = (currentViewMode === "single") || isMobile;
+      const isTinyScreen = window.innerWidth < 500;
+      const forceSingle = (currentViewMode === "single") || (isTinyScreen && currentViewMode !== "double");
       const ratio = (bookData && bookData.ratio) ? bookData.ratio : 1.414;
 
       let singlePageWidth, singlePageHeight;
@@ -663,9 +658,9 @@
         height: size.height,
         size: "fixed",
         maxShadowOpacity: 0.35,
-        showCover: size.isSingle ? false : (bookData.showCover !== undefined ? bookData.showCover : true),
+        showCover: false,
         mobileScrollSupport: false,
-        usePortrait: true
+        usePortrait: size.isSingle
       });
 
       pageFlip.loadFromHTML(currentBook.querySelectorAll(".page"));
